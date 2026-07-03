@@ -1,0 +1,96 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Film;
+use Illuminate\Database\Seeder;
+
+/**
+ * Seeds the films table with all 6 PieNet launch titles.
+ */
+class FilmSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $films = [
+            [
+                'title'        => 'Spider-Man: Brand New Day',
+                'slug'         => 'spiderman-brand-new-day',
+                'genre'        => 'Neo-Noir Thriller',
+                'logline'      => 'A disgraced investigative journalist discovers a prototype suit that grants him abilities, but the suit\'s AI begins manipulating his memories.',
+                'synopsis'     => 'In a rain-soaked metropolis, journalist Miles Warren uncovers a lost tech prototype. When he dons the suit to solve a murder, he realizes the suit is cataloging his past to rewrite his future. He must outsmart his own technology before he loses himself.',
+                'director'     => 'Denis Villeneuve',
+                'cast'         => ['John David Washington', 'Zendaya', 'Willem Dafoe'],
+                'release_date' => '2026-10-15',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/spiderman.jpg',
+            ],
+            [
+                'title'        => 'Invincible',
+                'slug'         => 'invincible',
+                'genre'        => 'Sci-Fi Drama',
+                'logline'      => 'The world\'s most powerful hero\'s son struggles with the burden of legacy, discovering his father\'s past might be a lie.',
+                'synopsis'     => 'Mark Grayson is a typical college student except his father is the legendary Omni-Man. As Mark develops his own powers, he uncovers a galactic conspiracy that forces him to question his own bloodline and the definition of heroism.',
+                'director'     => 'The Daniels',
+                'cast'         => ['Steven Yeun', 'J.K. Simmons', 'Sandra Oh'],
+                'release_date' => '2026-12-04',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/invincible.jpg',
+            ],
+            [
+                'title'        => 'Expendables 4',
+                'slug'         => 'expendables-4',
+                'genre'        => 'Cyberpunk Action',
+                'logline'      => 'A squad of veteran soldiers are brought back as cyborgs to stop a techno-terrorist from crashing the global network.',
+                'synopsis'     => 'In 2050, aging mercenaries are given a second chance through experimental cybernetic enhancements. Their mission: infiltrate a floating data fortress and neutralize a rogue AI that has weaponized satellite networks. The upgrades come with a lethal countdown.',
+                'director'     => 'Chad Stahelski',
+                'cast'         => ['Keanu Reeves', 'Jason Momoa', 'Idris Elba'],
+                'release_date' => '2027-02-12',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/expendables.jpg',
+            ],
+            [
+                'title'        => 'Avengers: Doomsday',
+                'slug'         => 'avengers-doomsday',
+                'genre'        => 'Psychological Thriller',
+                'logline'      => 'A countdown appears on every screen globally. Five estranged specialists must find the source before time runs out, but one of them is the saboteur.',
+                'synopsis'     => 'A cryptic 72-hour timer broadcasts across every digital device. Five specialists with dark pasts are assembled to stop the inevitable. As they navigate a maze of clues, paranoia sets in—the countdown isn\'t a warning, it\'s a confession.',
+                'director'     => 'Bong Joon-ho',
+                'cast'         => ['Robert Downey Jr.', 'Scarlett Johansson', 'Mark Ruffalo'],
+                'release_date' => '2027-05-21',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/avengers.jpg',
+            ],
+            [
+                'title'        => 'Eclipse Protocol',
+                'slug'         => 'eclipse-protocol',
+                'genre'        => 'Sci-Fi Mystery',
+                'logline'      => 'During a total solar eclipse, a team of astronauts lose contact with Earth and discover a hidden object in the sun\'s shadow.',
+                'synopsis'     => 'Astronauts aboard the Odyssey are on a routine mission when a solar eclipse triggers an anomaly. They find a derelict ship from a parallel dimension. To return home, they must solve the physics of the impossible—and confront their own doppelgangers.',
+                'director'     => 'Christopher Nolan',
+                'cast'         => ['Cillian Murphy', 'Florence Pugh', 'Robert Pattinson'],
+                'release_date' => '2027-08-20',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/eclipse.jpg',
+            ],
+            [
+                'title'        => 'Midnight Heist',
+                'slug'         => 'midnight-heist',
+                'genre'        => 'Crime Drama',
+                'logline'      => 'The greatest art thief in history is hired to steal a painting from a museum that doesn\'t exist on any map.',
+                'synopsis'     => 'At midnight, a legendary thief receives a job: steal The Noir Star from a museum that moves locations every night. The twist? The painting is a portal to the past. The heist isn\'t about money—it\'s about rewriting a tragedy.',
+                'director'     => 'Edgar Wright',
+                'cast'         => ['Anya Taylor-Joy', 'Michael B. Jordan', 'Tilda Swinton'],
+                'release_date' => '2027-11-05',
+                'trailer_url'  => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                'poster_image' => '/images/midnight.jpg',
+            ],
+        ];
+
+        foreach ($films as $film) {
+            Film::updateOrCreate(['slug' => $film['slug']], $film);
+        }
+
+        $this->command->info('✅ Seeded ' . count($films) . ' PieNet films.');
+    }
+}

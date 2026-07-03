@@ -1,0 +1,449 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   TAILWIND V4: Theme Configuration
+   ============================================ */
+@theme {
+  /* Colors */
+  --color-pienet-black:   #0A0A0A;
+  --color-pienet-surface: #141414;
+  --color-pienet-card:    #1C1C1C;
+  --color-pienet-red:     #E50914;
+  --color-pienet-zinc:    #A1A1AA;
+  --color-pienet-white:   #FFFFFF;
+
+  /* Fonts */
+  --font-bebas: var(--font-bebas-var, 'Bebas Neue', sans-serif);
+  --font-inter:  var(--font-inter-var,  'Inter', sans-serif);
+
+  /* Custom shadows */
+  --shadow-red-glow:    0 0 30px rgba(229, 9, 20, 0.4), 0 0 60px rgba(229, 9, 20, 0.1);
+  --shadow-red-glow-sm: 0 0 15px rgba(229, 9, 20, 0.25);
+  --shadow-card:        0 4px 40px rgba(0,0,0,0.5);
+}
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (THEME TOKENS)
+   ============================================ */
+:root {
+  --bg-primary:   #0A0A0A;
+  --bg-surface:   #141414;
+  --bg-card:      #1C1C1C;
+  --accent-red:   #E50914;
+  --accent-glow:  rgba(229, 9, 20, 0.4);
+  --text-primary: #FFFFFF;
+  --text-muted:   #A1A1AA;
+  --border-color: rgba(255, 255, 255, 0.08);
+}
+
+.light {
+  --bg-primary:   #FFFFFF;
+  --bg-surface:   #F5F5F5;
+  --bg-card:      #EFEFEF;
+  --text-primary: #0A0A0A;
+  --text-muted:   #52525B;
+  --border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   BASE RESET & GLOBAL STYLES
+   ============================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-red) var(--bg-surface);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Custom scrollbar - WebKit */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-surface); }
+::-webkit-scrollbar-thumb { background: var(--accent-red); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #ff1f2e; }
+
+/* ============================================
+   TYPOGRAPHY UTILITIES
+   ============================================ */
+.font-bebas {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+}
+.font-inter {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   COLOR UTILITIES (for use in className)
+   ============================================ */
+.bg-pienet-black   { background-color: #0A0A0A; }
+.bg-pienet-surface { background-color: #141414; }
+.bg-pienet-card    { background-color: #1C1C1C; }
+.bg-pienet-red     { background-color: #E50914; }
+.text-pienet-red   { color: #E50914; }
+.text-pienet-zinc  { color: #A1A1AA; }
+.text-pienet-white { color: #FFFFFF; }
+.border-pienet-red { border-color: #E50914; }
+
+/* ============================================
+   COMPONENT UTILITIES
+   ============================================ */
+.glass {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.red-glow {
+  box-shadow: 0 0 30px rgba(229, 9, 20, 0.4), 0 0 60px rgba(229, 9, 20, 0.1);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #FFFFFF 0%, #A1A1AA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-red {
+  background: linear-gradient(135deg, #E50914 0%, #FF6B73 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   CARD 3D TILT EFFECT
+   ============================================ */
+.film-card {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.film-card:hover {
+  box-shadow: 0 25px 60px rgba(229, 9, 20, 0.25), 0 0 0 1px rgba(229, 9, 20, 0.3);
+}
+
+/* ============================================
+   HORIZONTAL SCROLL CAROUSEL
+   ============================================ */
+.carousel-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.5rem;
+}
+.carousel-scroll::-webkit-scrollbar { display: none; }
+.carousel-item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   COUNTDOWN DIGITS
+   ============================================ */
+.countdown-digit {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1;
+  color: #FFFFFF;
+  text-shadow: 0 0 30px rgba(229, 9, 20, 0.5);
+}
+
+.countdown-label {
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #A1A1AA;
+}
+
+/* ============================================
+   NAVIGATION
+   ============================================ */
+.nav-link {
+  position: relative;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #A1A1AA;
+  transition: color 0.2s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #E50914;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover { color: #FFFFFF; }
+.nav-link:hover::after { width: 100%; }
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: #E50914;
+  color: #FFFFFF;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);
+  transform: translateY(-2px);
+}
+.btn-primary:hover::before { left: 100%; }
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2rem;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  border-color: #E50914;
+  color: #E50914;
+  box-shadow: 0 0 20px rgba(229, 9, 20, 0.2);
+}
+
+/* ============================================
+   FORM STYLES
+   ============================================ */
+.form-input {
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  background: #1C1C1C;
+  color: var(--text-primary);
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border-color);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-input::placeholder { color: #A1A1AA; }
+.form-input:focus {
+  border-color: #E50914;
+  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.1);
+}
+
+.form-label {
+  display: block;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A1A1AA;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================================
+   GENRE FILTER PILLS
+   ============================================ */
+.genre-pill {
+  padding: 0.5rem 1.25rem;
+  font-family: var(--font-inter), 'Inter', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: #A1A1AA;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.genre-pill:hover {
+  border-color: rgba(229, 9, 20, 0.5);
+  color: #FFFFFF;
+}
+
+.genre-pill.active {
+  background: #E50914;
+  border-color: #E50914;
+  color: #FFFFFF;
+  box-shadow: 0 0 15px rgba(229, 9, 20, 0.3);
+}
+
+/* ============================================
+   SECTION DIVIDER
+   ============================================ */
+.section-divider {
+  width: 60px;
+  height: 3px;
+  background: #E50914;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   POSTER IMAGE
+   ============================================ */
+.poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.film-card:hover .poster-image {
+  transform: scale(1.05);
+}
+
+/* ============================================
+   LIGHT MODE OVERRIDES
+   ============================================ */
+.light .glass {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+.light .form-input {
+  background: #F9F9F9;
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0A0A0A;
+}
+
+.light .genre-pill {
+  border-color: rgba(0,0,0,0.1);
+  color: #52525B;
+}
+
+.light .btn-outline {
+  color: #0A0A0A;
+  border-color: rgba(0,0,0,0.2);
+}
+
+/* ============================================
+   LOADING SKELETON
+   ============================================ */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #1C1C1C 25%, #2A2A2A 50%, #1C1C1C 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ============================================
+   HERO FLOATING SHAPES
+   ============================================ */
+.hero-shape {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Hero background pattern */
+.bg-hero-pattern {
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(229,9,20,0.08) 0%, transparent 70%);
+}
+
+/* ============================================
+   TRAILER EMBED
+   ============================================ */
+.trailer-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+}
+
+.trailer-wrapper iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  border: none;
+}
+
+/* ============================================
+   RESPONSIVE GRID UTILITIES
+   ============================================ */
+@media (min-width: 640px) {
+  .sm\:grid { display: grid !important; }
+  .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:hidden { display: none !important; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
