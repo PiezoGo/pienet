@@ -52,6 +52,6 @@ export function posterUrl(path: string): string {
   if (!path) return '/images/placeholder.jpg'
   if (path.startsWith('http')) return path
   // Prepend Laravel's base URL for relative paths
-  const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000'
+const base = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://pienet-backend.onrender.com'
   return `${base}/storage/${path}`
 }
