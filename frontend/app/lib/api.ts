@@ -3,7 +3,7 @@
 
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pienet-backend.vercel.app/'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://pienet-backend.onrender.com'
 
 const apiClient = axios.create({
   baseURL: API_URL,
