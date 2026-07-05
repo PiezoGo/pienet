@@ -1,58 +1,272 @@
 'use client'
 
 // components/HeroSection.tsx
-// The signature cinematic hero with 3-layer Framer Motion parallax.
-// Layer 1 (bg):  Slowly rotating abstract geometric blobs — the slowest.
-// Layer 2 (mid): Floating film-reel icons and text snippets at medium speed.
-// Layer 3 (fg):  Hero headline & tagline moving at a slight counter-direction.
+// Pienet Movies — Full-viewport cinematic hero with image slideshow backdrop.
+// 5 images cycle via crossfade (~6s each). Manual prev/next + dot controls.
+// Autoplay pauses on hover/focus. prefers-reduced-motion = static first image.
+// Text content (wordmark, tagline, countdown) floats above the slideshow.
 
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import CountdownTimer from './CountdownTimer'
+import { useFilms } from '@/app/hooks/useFilms'
 
-// Earliest premiere: Oct 15, 2026
-const NEXT_PREMIERE = new Date('2026-10-15T00:00:00')
-
-// Floating text snippets for midground layer
-const FLOATING_SNIPPETS = [
-  'Premieres', 'Legends', '2026', 'Red Carpet', 'Global', 'Exclusive',
-  'IMAX', 'World First', 'Teaser', 'Launch', 'FILMS',
+// ── Slideshow configuration ──────────────────────────────────────────────────
+const SLIDES = [
+  {
+    src:  '/images/hero-backdrop.jpg',
+    alt:  'A cinematic wide shot — dramatic action on screen',
+  },
+  {
+    src:  '/images/red-hour.jpg',
+    alt:  'Dark urban alleyway, moody neo-noir atmosphere',
+  },
+  {
+    src:  '/images/the-long-silence.jpg',
+    alt:  'Cinematic still — tense dramatic moment between characters',
+  },
+  {
+    src:  '/images/echo-chamber.jpg',
+    alt:  'Dark, atmospheric hallway — psychological tension',
+  },
+  {
+    src:  '/images/vantage.jpg',
+    alt:  'Wide-angle action scene — high stakes cinematic moment',
+  },
 ]
 
-interface ShapeProps {
-  size: number; top: string; left: string;
-  color: string; delay: number; duration: number;
+const SLIDE_DURATION = 6000  // ms between auto-advances
+const FADE_DURATION  = 0.9   // seconds for crossfade
+
+// ── Slideshow component ──────────────────────────────────────────────────────
+function HeroSlideshow() {
+  const [current,     setCurrent]     = useState(0)
+  const [isHovered,   setIsHovered]   = useState(false)
+  const [prefersStill, setPrefersStill] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Detect prefers-reduced-motion on mount
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersStill(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersStill(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
+  const advance = useCallback(() => {
+    setCurrent((c) => (c + 1) % SLIDES.length)
+  }, [])
+
+  const retreat = useCallback(() => {
+    setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length)
+  }, [])
+
+  const goTo = useCallback((i: number) => {
+    setCurrent(i)
+  }, [])
+
+  // Autoplay
+  useEffect(() => {
+    if (prefersStill || isHovered) return
+    timerRef.current = setTimeout(advance, SLIDE_DURATION)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [current, isHovered, prefersStill, advance])
+
+  return (
+    <div
+      style={{ position: 'absolute', inset: 0 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* ── Slide images ── */}
+      {prefersStill ? (
+        /* Static fallback — no animation */
+        <Image
+          src={SLIDES[0].src}
+          alt={SLIDES[0].alt}
+          fill
+          priority
+          className="object-cover object-center"
+          style={{ opacity: 0.38 }}
+        />
+      ) : (
+        /* Crossfade slideshow */
+        <AnimatePresence mode="sync">
+          {SLIDES.map((slide, i) =>
+            i === current ? (
+              <motion.div
+                key={slide.src}
+                style={{ position: 'absolute', inset: 0 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{   opacity: 0 }}
+                transition={{ duration: FADE_DURATION, ease: 'easeInOut' }}
+              >
+                <Image
+                  src={slide.src}
+                  alt={slide.alt}
+                  fill
+                  priority={i === 0}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  className="object-cover object-center"
+                  style={{ opacity: 0.38 }}
+                />
+              </motion.div>
+            ) : null
+          )}
+        </AnimatePresence>
+      )}
+
+      {/* Vignette — always present */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse 75% 80% at 50% 45%, transparent 0%, rgba(8,8,8,0.55) 60%, rgba(8,8,8,0.95) 100%)',
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+        style={{ height: '40%', background: 'linear-gradient(to bottom, transparent, #080808)' }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute top-0 left-0 right-0 pointer-events-none"
+        style={{ height: '20%', background: 'linear-gradient(to top, transparent, rgba(8,8,8,0.6))' }}
+        aria-hidden="true"
+      />
+
+      {/* ── Slideshow controls ── */}
+      {!prefersStill && (
+        <>
+          {/* Prev / Next arrows */}
+          <button
+            aria-label="Previous slide"
+            onClick={retreat}
+            style={{
+              position:    'absolute',
+              left:        '1.5rem',
+              top:         '50%',
+              transform:   'translateY(-50%)',
+              zIndex:      5,
+              background:  'rgba(8,8,8,0.5)',
+              border:      '1px solid rgba(255,255,255,0.1)',
+              color:       '#7A7066',
+              width:       '40px',
+              height:      '40px',
+              display:     'flex',
+              alignItems:  'center',
+              justifyContent: 'center',
+              cursor:      'pointer',
+              transition:  'all 0.2s ease',
+              backdropFilter: 'blur(4px)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#B89A6A'; e.currentTarget.style.color = '#B89A6A' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#7A7066' }}
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          <button
+            aria-label="Next slide"
+            onClick={advance}
+            style={{
+              position:    'absolute',
+              right:       '1.5rem',
+              top:         '50%',
+              transform:   'translateY(-50%)',
+              zIndex:      5,
+              background:  'rgba(8,8,8,0.5)',
+              border:      '1px solid rgba(255,255,255,0.1)',
+              color:       '#7A7066',
+              width:       '40px',
+              height:      '40px',
+              display:     'flex',
+              alignItems:  'center',
+              justifyContent: 'center',
+              cursor:      'pointer',
+              transition:  'all 0.2s ease',
+              backdropFilter: 'blur(4px)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#B89A6A'; e.currentTarget.style.color = '#B89A6A' }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#7A7066' }}
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          {/* Dot indicators */}
+          <div
+            role="tablist"
+            aria-label="Slideshow navigation"
+            style={{
+              position:       'absolute',
+              bottom:         '5rem',
+              left:           '50%',
+              transform:      'translateX(-50%)',
+              zIndex:         5,
+              display:        'flex',
+              alignItems:     'center',
+              gap:            '0.5rem',
+            }}
+          >
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                role="tab"
+                aria-label={`Go to slide ${i + 1}`}
+                aria-selected={i === current}
+                onClick={() => goTo(i)}
+                style={{
+                  width:      i === current ? '24px' : '6px',
+                  height:     '2px',
+                  background: i === current ? '#B89A6A' : 'rgba(255,255,255,0.2)',
+                  border:     'none',
+                  cursor:     'pointer',
+                  padding:    0,
+                  transition: 'all 0.35s ease',
+                  borderRadius: '1px',
+                }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
 }
 
-const FloatingShape = ({ size, top, left, color, delay, duration }: ShapeProps) => (
-  <motion.div
-    className="hero-shape absolute rounded-full"
-    style={{ width: size, height: size, top, left, background: color }}
-    animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.25, 0.12] }}
-    transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
-  />
-)
-
-const FloatingSnippet = ({ text, x, y, delay }: { text: string; x: string; y: string; delay: number }) => (
-  <motion.span
-    className="absolute font-bebas tracking-widest text-white/5 select-none pointer-events-none whitespace-nowrap"
-    style={{ left: x, top: y, fontSize: `${Math.random() * 1.5 + 0.8}rem` }}
-    animate={{ y: [0, -20, 0], opacity: [0.03, 0.08, 0.03] }}
-    transition={{ duration: 5 + Math.random() * 4, delay, repeat: Infinity, ease: 'easeInOut' }}
-  >
-    {text}
-  </motion.span>
-)
-
+// ── Main Hero Section ────────────────────────────────────────────────────────
 export default function HeroSection() {
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
 
-  // Parallax transforms for each layer
-  const bgY   = useTransform(scrollYProgress, [0, 1], ['0%',   '40%'])  // Fastest bg drift
-  const midY  = useTransform(scrollYProgress, [0, 1], ['0%',   '20%'])  // Mid speed
-  const fgY   = useTransform(scrollYProgress, [0, 1], ['0%',   '-10%']) // Foreground counter-drift
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const contentY = useTransform(scrollYProgress, [0, 1], ['0%', '-6%'])
+  const opacity  = useTransform(scrollYProgress, [0, 0.55], [1, 0])
+
+  const { data: films } = useFilms()
+
+  const { nextDate, nextTitle } = useMemo(() => {
+    if (!films || films.length === 0) {
+      return { nextDate: new Date('2026-09-12T00:00:00'), nextTitle: 'VANTAGE' }
+    }
+    const upcoming = films
+      .filter((f) => f.release_date && new Date(f.release_date + 'T00:00:00').getTime() > Date.now())
+      .sort((a, b) => new Date(a.release_date).getTime() - new Date(b.release_date).getTime())
+
+    if (upcoming.length === 0) {
+      return { nextDate: new Date('2026-09-12T00:00:00'), nextTitle: 'VANTAGE' }
+    }
+    return {
+      nextDate:  new Date(upcoming[0].release_date + 'T00:00:00'),
+      nextTitle: upcoming[0].title,
+    }
+  }, [films])
 
   const scrollToLaunches = () => {
     document.getElementById('launches')?.scrollIntoView({ behavior: 'smooth' })
@@ -61,148 +275,130 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-pienet-black"
-      style={{ paddingTop: '8rem', paddingBottom: '4rem' }}
-      aria-label="Hero section"
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      style={{ background: '#080808' }}
+      aria-label="Pienet Movies hero section"
     >
-      {/* ── LAYER 1: Background geometric blobs ──────────────────────── */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{ y: bgY }}
-      >
-        {/* Large background gradient pulse */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(229,9,20,0.08) 0%, transparent 70%)',
-          }}
-        />
-        <FloatingShape size={700} top="-15%"  left="-10%" color="rgba(229,9,20,0.2)"   delay={0}   duration={12} />
-        <FloatingShape size={500} top="60%"   left="70%"  color="rgba(100,20,255,0.15)" delay={3}   duration={15} />
-        <FloatingShape size={300} top="30%"   left="80%"  color="rgba(229,9,20,0.12)"   delay={1.5} duration={10} />
-        <FloatingShape size={400} top="70%"   left="-5%"  color="rgba(50,50,200,0.1)"   delay={2}   duration={13} />
-        {/* Film-frame grid lines */}
-        <div className="absolute inset-0 opacity-[0.03]"
-             style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
-      </motion.div>
+      {/* ── LAYER 1: Slideshow backdrop ── */}
+      <HeroSlideshow />
 
-      {/* ── LAYER 2: Midground floating snippets & film reels ─────────── */}
-      <motion.div
-        className="absolute pointer-events-none overflow-hidden"
-        style={{ y: midY, inset: '80px 0 0 0' }}
-      >
-        {FLOATING_SNIPPETS.map((text, i) => (
-          <FloatingSnippet
-            key={text}
-            text={text}
-            x={`${(i * 19 + 5) % 90}%`}
-            y={`${(i * 13 + 8) % 85}%`}
-            delay={i * 0.4}
-          />
-        ))}
-        {/* Decorative film strip dots */}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <motion.div
-            key={`dot-${i}`}
-            className="absolute w-1 h-1 rounded-full bg-pienet-red/20"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top:  `${Math.random() * 100}%`,
-            }}
-            animate={{ opacity: [0, 0.6, 0], scale: [0, 1.5, 0] }}
-            transition={{
-              duration: 3 + Math.random() * 3,
-              delay: Math.random() * 5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          />
-        ))}
-      </motion.div>
+      {/* ── LAYER 2: Grain texture ── */}
+      <div className="grain-overlay" aria-hidden="true" />
 
-      {/* ── LAYER 3: Foreground hero content ─────────────────────────── */}
+      {/* ── LAYER 3: Hero content (above slideshow) ── */}
       <motion.div
-        className="relative z-10 flex flex-col items-center text-center px-4"
-        style={{ y: fgY, opacity }}
+        className="relative z-10 flex flex-col items-center text-center"
+        style={{ y: contentY, opacity, padding: '0 1.5rem', maxWidth: '900px', width: '100%' }}
       >
-        {/* Eyebrow label */}
+        {/* Eyebrow */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex items-center gap-3 mb-8"
+          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}
         >
-          <span className="h-px w-12 bg-pienet-red" />
-          <span className="font-inter text-xs font-semibold tracking-[0.3em] uppercase text-pienet-red">
-            PieNet Launch House
-          </span>
-          <span className="h-px w-12 bg-pienet-red" />
+          <span style={{ height: '1px', width: '40px', background: '#B89A6A', opacity: 0.7 }} />
+          <span className="pm-eyebrow">Premiere & Launch House</span>
+          <span style={{ height: '1px', width: '40px', background: '#B89A6A', opacity: 0.7 }} />
         </motion.div>
 
-        {/* Main Heading */}
+        {/* Main wordmark / heading */}
         <motion.h1
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          initial={{ opacity: 0, y: 50, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="font-bebas text-[clamp(4rem,15vw,12rem)] leading-none tracking-tight text-white"
-          style={{ textShadow: '0 0 80px rgba(229,9,20,0.3)' }}
+          transition={{ duration: 1.1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="pm-display"
+          style={{
+            fontSize:   'clamp(3.5rem, 12vw, 10rem)',
+            color:      '#F5F0EB',
+            textShadow: '0 2px 60px rgba(0,0,0,0.8)',
+          }}
         >
-          View<br />
-          <span className="text-gradient-red">what's on.</span>
+          PIENET
+          <br />
+          <span style={{ color: '#B89A6A', fontWeight: 300 }}>MOVIES</span>
         </motion.h1>
 
-        {/* Tagline */}
+        {/* Voice tagline */}
         <motion.p
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-          className="mt-6 font-inter text-pienet-zinc text-lg md:text-xl font-light tracking-wide max-w-xl"
+          transition={{ duration: 0.9, delay: 0.75 }}
+          style={{
+            fontFamily:    'var(--font-inter), Inter, sans-serif',
+            fontSize:      'clamp(0.75rem, 1.5vw, 0.9375rem)',
+            fontWeight:    300,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color:         '#7A7066',
+            marginTop:     '1.5rem',
+            maxWidth:      '480px',
+          }}
         >
-          Where premieres become legends.
+          Every film gets one first night.
+          <br />
+          <span style={{ color: '#E8E0D4', opacity: 0.8 }}>We make sure it's the right one.</span>
         </motion.p>
 
-        {/* Countdown Timer */}
+        {/* Countdown */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.95 }}
-          className="mt-12"
+          transition={{ duration: 0.9, delay: 1.0 }}
+          style={{ marginTop: '3.5rem' }}
         >
-          <CountdownTimer target={NEXT_PREMIERE} label="Next Premiere — Spider-Man: Brand New Day" />
+          <CountdownTimer
+            target={nextDate}
+            label="Next Premiere"
+            filmTitle={nextTitle}
+          />
         </motion.div>
 
-        {/* CTA Buttons */}
+        {/* CTAs */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.15 }}
-          className="mt-10 flex flex-col sm:flex-row gap-4 items-center"
+          transition={{ duration: 0.8, delay: 1.25 }}
+          style={{ marginTop: '3rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'center' }}
         >
           <button
             id="explore-launches-btn"
             onClick={scrollToLaunches}
-            className="btn-primary min-w-[200px] justify-center"
+            className="btn-primary"
           >
-            <span>Explore Launches</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            Explore Launches
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <a href="/about" className="btn-outline min-w-[200px] justify-center">
-            Our Story
+          <a href="/company" className="btn-outline">
+            About the House
           </a>
         </motion.div>
       </motion.div>
 
-      {/* Scroll indicator */}
+      {/* ── Scroll indicator ── */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
-        style={{ opacity }}
+        className="absolute bottom-8 left-1/2 z-10"
+        style={{ x: '-50%', opacity }}
         animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+        aria-hidden="true"
       >
-        <span className="font-inter text-[10px] tracking-[0.3em] uppercase text-pienet-zinc/50">Scroll</span>
-        <div className="w-px h-10 bg-gradient-to-b from-pienet-red to-transparent" />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+          <span
+            style={{
+              fontFamily:    'var(--font-inter), Inter, sans-serif',
+              fontSize:      '0.5rem',
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              color:         'rgba(122,112,102,0.4)',
+            }}
+          >
+            Scroll
+          </span>
+          <div style={{ width: '1px', height: '40px', background: 'linear-gradient(to bottom, rgba(184,154,106,0.5), transparent)' }} />
+        </div>
       </motion.div>
     </section>
   )

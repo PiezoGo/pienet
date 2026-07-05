@@ -1,39 +1,39 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Inter } from 'next/font/google'
-import { ThemeProvider } from 'next-themes'
+import { Cormorant_Garamond, Inter } from 'next/font/google'
 import { QueryProvider } from '@/app/context/QueryProvider'
 import Navbar from '@/app/components/Navbar'
 import Footer from '@/app/components/Footer'
 import './globals.css'
 
 // ── Google Font imports ────────────────────────────────────────────────────
-const bebasNeue = Bebas_Neue({
-  weight:   '400',
+const cormorant = Cormorant_Garamond({
+  weight:   ['300', '400', '600', '700'],
   subsets:  ['latin'],
-  variable: '--font-bebas-var',
+  variable: '--font-cormorant',
   display:  'swap',
+  style:    ['normal', 'italic'],
 })
 
 const inter = Inter({
   subsets:  ['latin'],
-  variable: '--font-inter-var',
+  variable: '--font-inter',
   display:  'swap',
 })
 
 // ── Global SEO metadata ────────────────────────────────────────────────────
 export const metadata: Metadata = {
   title: {
-    default:  'PieNet — View What\'s On',
-    template: '%s | PieNet',
+    default:  'Pienet Movies — Film Premiere & Launch Atelier',
+    template: '%s | Pienet Movies',
   },
   description:
-    'PieNet is a cinematic launch house. We unveil and premiere the most anticipated films of the decade. Where premieres become legends.',
-  keywords: ['PieNet', 'film premieres', 'movie launches', 'cinematic events', 'film house'],
+    'Pienet Movies is a studio-adjacent premiere and launch house. We give films their first night. Premieres. Campaigns. Press. One house, one standard.',
+  keywords: ['Pienet Movies', 'film premieres', 'movie launches', 'cinematic events', 'premiere house', 'film atelier'],
   openGraph: {
-    type:      'website',
-    siteName:  'PieNet',
-    title:     'PieNet — View What\'s On',
-    description: 'Where premieres become legends.',
+    type:        'website',
+    siteName:    'Pienet Movies',
+    title:       'Pienet Movies — Film Premiere & Launch Atelier',
+    description: 'Every film gets one first night. We make sure it\'s the right one.',
   },
 }
 
@@ -46,22 +46,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning
-      className={`${bebasNeue.variable} ${inter.variable}`}
+      className={`${cormorant.variable} ${inter.variable}`}
     >
-      <body className="min-h-screen bg-pienet-black text-white antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          storageKey="pienet-theme"
-        >
-          <QueryProvider>
-            <Navbar />
-            <main>{children}</main>
-            <Footer />
-          </QueryProvider>
-        </ThemeProvider>
+      <body className="min-h-screen bg-pm-void text-pm-text antialiased">
+        <QueryProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </QueryProvider>
       </body>
     </html>
   )
