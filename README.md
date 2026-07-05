@@ -90,4 +90,3 @@ npm run dev
 
 ---
 
-*Designed and developed for a premium cinematic browsing experience.*
